@@ -75,7 +75,6 @@ const TeacherList = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("TEacher FORM", form)
         try {
             setLoading(true);
             if (isEdit && form.id) {

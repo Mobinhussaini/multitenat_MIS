@@ -16,7 +16,7 @@ class CourseController extends Controller
     {
         $tenantId = Auth::user()->tenant_id;
         $courses = Course::where('tenant_id', $tenantId)->get();
-        $teachers = Teacher::where('tenant_id', $tenantId)->get();
+        $teachers = Teacher::where('tenant_id', $tenantId)->paginate(10);
 
         return Inertia::render('course/index', [
             'tenant_id' => $tenantId,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Student;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -12,18 +13,26 @@ use Inertia\Inertia;
 
 class EnrollmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $tenantId = Auth::user()->tenant_id;
-        $enrollments = Enrollment::where('tenant_id', $tenantId)->get();
+
+        // Paginate enrollments (10 per page, you can change it as needed)
+        $enrollments = Enrollment::where('tenant_id', $tenantId)
+            ->orderBy('enrollment_date', 'desc')
+            ->paginate(6)
+            ->withQueryString();  // Keep query string during pagination
+
         $students = Student::where('tenant_id', $tenantId)->get(['id', 'first_name', 'last_name']);
-        $courses = Course::where('tenant_id', $tenantId)->get(['id', 'course_name', 'description']);
+        $courses = Course::where('tenant_id', $tenantId)->get(['id', 'course_name', 'teacher_id', 'description']);
+        $teachers = Teacher::where('tenant_id', $tenantId)->get(['id', 'first_name', 'last_name']);
 
         return Inertia::render('enrollment/index', [
+            'enrollments' => $enrollments,
             'tenant_id' => $tenantId,
-            'enrollments'=> $enrollments,
-            'students'=>$students,
+            'students' => $students,
             'courses' => $courses,
+            'teachers' => $teachers,
         ]);
     }
 
@@ -36,9 +45,23 @@ class EnrollmentController extends Controller
             'enrollment_date' => 'required|date',
         ]);
 
-        $validated['tenant_id'] = Auth::user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
+
+        $exists = Enrollment::where('tenant_id', $tenantId)
+            ->where('course_id', $validated['course_id'])
+            ->where('student_id', $validated['student_id'])
+            ->exists();
+
+        if ($exists) {
+            return Redirect::route('enrollments.index')->withErrors([
+                'student_id' => 'This student is already enrolled in the selected course.',
+            ]);
+        }
+
+        $validated['tenant_id'] = $tenantId;
         Enrollment::create($validated);
-        return Redirect::route('enrollments.index')->with('success', 'The student successfully enrolled to the course.');
+
+        return Redirect::route('enrollments.index')->with('success', 'Student successfully enrolled.');
     }
 
     public function update(Request $request, $id)
@@ -51,7 +74,7 @@ class EnrollmentController extends Controller
         ]);
 
         $enrollment = Enrollment::where('tenant_id', Auth::user()->tenant_id)
-                    ->findOrFail($id);
+            ->findOrFail($id);
 
         $enrollment->update($validated);
         return Redirect::route('enrollments.index')->with('success', 'The enrollment of the student has been updated successfully.');
@@ -65,5 +88,4 @@ class EnrollmentController extends Controller
 
         return Redirect::route('enrollments.index')->with('success', 'The enrollment has been deleted successfully.');
     }
-
 }
