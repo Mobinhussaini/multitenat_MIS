@@ -31,7 +31,7 @@ const CourseList = () => {
     }>().props;
 
     const coursesList = courses ?? [];
-    const teachersList = teachers ?? [];
+    const teachersList = Array.isArray(teachers) ? teachers:  [];
 
     const [open, setOpen] = useState(false);
     const [form, setForm] = useState<FormState>(emptyForm);
@@ -138,8 +138,7 @@ const CourseList = () => {
                     </thead>
                     <tbody>
                         {coursesList.length > 0 ? (
-                            coursesList.map((course) => {
-                                return (
+                            coursesList.map((course) => (
                                     <tr key={course.id} className="border-b hover:bg-gray-50 dark:border-neutral-700 dark:hover:bg-neutral-800">
                                         <td className="px-6 py-4">{course.id}</td>
                                         <td className="px-6 py-4">{course.course_name}</td>
@@ -168,8 +167,8 @@ const CourseList = () => {
                                             </Button>
                                         </td>
                                     </tr>
-                                );
-                            })
+                                )
+                            )
                         ) : (
                             <tr>
                                 <td colSpan={5} className="px-6 py-4 text-center text-gray-500">

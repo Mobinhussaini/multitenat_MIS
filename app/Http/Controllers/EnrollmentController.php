@@ -13,16 +13,10 @@ use Inertia\Inertia;
 
 class EnrollmentController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         $tenantId = Auth::user()->tenant_id;
-
-        // Paginate enrollments (10 per page, you can change it as needed)
-        $enrollments = Enrollment::where('tenant_id', $tenantId)
-            ->orderBy('enrollment_date', 'desc')
-            ->paginate(6)
-            ->withQueryString();  // Keep query string during pagination
-
+        $enrollments = Enrollment::where('tenant_id', $tenantId)->get();
         $students = Student::where('tenant_id', $tenantId)->get(['id', 'first_name', 'last_name']);
         $courses = Course::where('tenant_id', $tenantId)->get(['id', 'course_name', 'teacher_id', 'description']);
         $teachers = Teacher::where('tenant_id', $tenantId)->get(['id', 'first_name', 'last_name']);

@@ -27,23 +27,13 @@ type FormState = typeof emptyForm & { id?: number };
 const EnrollmentList = () => {
     const { auth, enrollments, students, courses, teachers } = usePage<{
         auth: { user: { tenant_id: number } };
-        enrollments?: {
-            data: EnrollmentType[];
-            current_page: number;
-            last_page: number;
-            total: number;
-            links: {
-                url: string | null;
-                label: string;
-                active: boolean;
-            }[];
-        };
+        enrollments?: EnrollmentType[];
         students?: StudentType[];
         courses?: CourseType[];
         teachers?: TeacherType[];
     }>().props;
 
-    const enrollmentsList = enrollments?.data ?? [];
+    const enrollmentsList = enrollments ?? [];
     const studentsList = students ?? [];
     const coursesList = courses ?? [];
     const teachersList = teachers ?? [];
@@ -52,12 +42,6 @@ const EnrollmentList = () => {
     const [form, setForm] = useState<FormState>(emptyForm);
     const [isEdit, setIsEdit] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [searchFilters, setSearchFilters] = useState({
-        id: '',
-        student: '',
-        course: '',
-        enrollment_date: '',
-    });
 
     const handleOpenAdd = () => {
         setForm(emptyForm);
@@ -187,41 +171,6 @@ const EnrollmentList = () => {
                             <th className="px-6 py-3 text-left text-xs font-semibold">Enrollment Date</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold">Actions</th>
                         </tr>
-                        <tr>
-                            <th className="px-6 py-2">
-                                <Input
-                                    className="h-8"
-                                    placeholder="Search ID"
-                                    value={searchFilters.id}
-                                    onChange={(e) => setSearchFilters({ ...searchFilters, id: e.target.value })}
-                                />
-                            </th>
-                            <th className="px-6 py-2">
-                                <Input
-                                    className="h-8"
-                                    placeholder="Search Student"
-                                    value={searchFilters.student}
-                                    onChange={(e) => setSearchFilters({ ...searchFilters, student: e.target.value })}
-                                />
-                            </th>
-                            <th className="px-6 py-2">
-                                <Input
-                                    className="h-8"
-                                    placeholder="Search Course"
-                                    value={searchFilters.course}
-                                    onChange={(e) => setSearchFilters({ ...searchFilters, course: e.target.value })}
-                                />
-                            </th>
-                            <th className="px-6 py-2">
-                                <Input
-                                    className="h-8"
-                                    placeholder="Search Date"
-                                    value={searchFilters.enrollment_date}
-                                    onChange={(e) => setSearchFilters({ ...searchFilters, enrollment_date: e.target.value })}
-                                />
-                            </th>
-                            <th></th>
-                        </tr>
                     </thead>
                     <tbody>
                         {enrollmentsList.length > 0 ? (
@@ -232,7 +181,7 @@ const EnrollmentList = () => {
                                         <td className="px-6 py-4">{getStudentName(enrollment.student_id)}</td>
                                         <td className="px-6 py-4">
                                             {getCourseName(enrollment.course_id)}
-                                            <span className="flex text-xs text-muted-foreground">
+                                            <span className="text-xs flex text-muted-foreground">
                                                 {getTeacherNameByCourseId(enrollment.course_id)}
                                             </span>
                                         </td>
@@ -267,25 +216,6 @@ const EnrollmentList = () => {
                         )}
                     </tbody>
                 </table>
-                {enrollments?.links && (
-                    <div className="mt-4 flex flex-wrap justify-center gap-2">
-                        {enrollments.links.map((link, index) => {
-                            const isActive = link.active;
-                            const label = link.label.replace('&laquo;', '«').replace('&raquo;', '»');
-                            return (
-                                <Button
-                                    key={index}
-                                    onClick={() => link.url && router.get(link.url)}
-                                    variant={isActive ? 'default' : 'outline'}
-                                    className="px-3 py-1 text-sm"
-                                    disabled={!link.url}
-                                >
-                                    <span dangerouslySetInnerHTML={{ __html: label }} />
-                                </Button>
-                            );
-                        })}
-                    </div>
-                )}
             </Card>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent>
